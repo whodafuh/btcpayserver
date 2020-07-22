@@ -741,7 +741,7 @@ namespace BTCPayServer.Tests
                 return new JsonTextReader(new StringReader(val));
             }
 
-            var jsonConverter = new DecimalStringJsonConverter();
+            var jsonConverter = new DecimalDoubleStringJsonConverter();
             Assert.True(jsonConverter.CanConvert(typeof(decimal)));
             Assert.True(jsonConverter.CanConvert(typeof(decimal?)));
             Assert.False(jsonConverter.CanConvert(typeof(double)));

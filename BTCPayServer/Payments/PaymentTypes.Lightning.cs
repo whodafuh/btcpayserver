@@ -1,5 +1,6 @@
 using BTCPayServer.Payments.Lightning;
 using BTCPayServer.Services.Invoices;
+using NBitcoin;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -44,6 +45,13 @@ namespace BTCPayServer.Payments
         {
             return null;
         }
+
+        public override string GetPaymentLink(BTCPayNetworkBase network, IPaymentMethodDetails paymentMethodDetails,
+            Money cryptoInfoDue, string serverUri)
+        {
+            return $"LIGHTNING:{ paymentMethodDetails.GetPaymentDestination().ToUpperInvariant().Substring("LIGHTNING:".Length)}";
+        }
+
         public override string InvoiceViewPaymentPartialName { get; } = "ViewLightningLikePaymentData";
     }
 }

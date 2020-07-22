@@ -456,25 +456,20 @@ namespace BTCPayServer.Services.Invoices
                 {
                     cryptoInfo.PaymentUrls = new InvoicePaymentUrls()
                     {
-                        BOLT11 = $"lightning:{cryptoInfo.Address}"
+                        BOLT11 = paymentId.PaymentType.GetPaymentLink(info.Network, details, cryptoInfo.Due, ServerUrl)
                     };
                 }
                 else if (paymentId.PaymentType == PaymentTypes.BTCLike)
                 {
                     var minerInfo = new MinerFeeInfo();
                     minerInfo.TotalFee = accounting.NetworkFee.Satoshi;
-                    minerInfo.SatoshiPerBytes = ((BitcoinLikeOnChainPaymentMethod)details).FeeRate
+                    minerInfo.SatoshiPerBytes = ((BitcoinLikeOnChainPaymentMethod) details).FeeRate
                         .GetFee(1).Satoshi;
                     dto.MinerFees.TryAdd(cryptoInfo.CryptoCode, minerInfo);
-                    var bip21 = ((BTCPayNetwork)info.Network).GenerateBIP21(cryptoInfo.Address, cryptoInfo.Due);
 
-                    if ((details as BitcoinLikeOnChainPaymentMethod)?.PayjoinEnabled is true)
-                    {
-                        bip21 += $"&{PayjoinClient.BIP21EndpointKey}={ServerUrl.WithTrailingSlash()}{cryptoCode}/{PayjoinClient.BIP21EndpointKey}";
-                    }
                     cryptoInfo.PaymentUrls = new NBitpayClient.InvoicePaymentUrls()
                     {
-                        BIP21 = bip21,
+                        BIP21 = paymentId.PaymentType.GetPaymentLink(info.Network, details, cryptoInfo.Due, ServerUrl),
                     };
 
 #pragma warning disable 618
