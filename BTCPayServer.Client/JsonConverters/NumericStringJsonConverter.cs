@@ -5,11 +5,13 @@ using Newtonsoft.Json.Linq;
 
 namespace BTCPayServer.JsonConverters
 {
-    public class DecimalDoubleStringJsonConverter : JsonConverter
+    public class NumericStringJsonConverter : JsonConverter
     {
         public override bool CanConvert(Type objectType)
         {
-            return (objectType == typeof(decimal) || objectType == typeof(decimal?) || objectType == typeof(double) ||
+            return (objectType == typeof(decimal) ||
+                    objectType == typeof(decimal?) ||
+                    objectType == typeof(double) ||
                     objectType == typeof(double?));
         }
 
