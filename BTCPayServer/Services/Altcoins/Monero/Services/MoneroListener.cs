@@ -142,7 +142,7 @@ namespace BTCPayServer.Services.Altcoins.Monero.Services
             }
 
             _eventAggregator.Publish(
-                new InvoiceEvent(invoice, 1002, InvoiceEvent.ReceivedPayment) { Payment = payment });
+                new InvoiceEvent(invoice, InvoiceEvent.ReceivedPayment) { Payment = payment });
         }
 
         private async Task UpdatePaymentStates(string cryptoCode, InvoiceEntity[] invoices)
