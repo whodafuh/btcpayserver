@@ -24,9 +24,9 @@ namespace BTCPayServer.JsonConverters
                 case JTokenType.Float:
                 case JTokenType.Integer:
                 case JTokenType.String:
-                    if (objectType == typeof(decimal))
+                    if (objectType == typeof(decimal) || objectType == typeof(decimal?) )
                         return decimal.Parse(token.ToString(), CultureInfo.InvariantCulture);
-                    if (objectType == typeof(double))
+                    if (objectType == typeof(double) || objectType == typeof(double?))
                         return double.Parse(token.ToString(), CultureInfo.InvariantCulture);
 
                     throw new JsonSerializationException("Unexpected object type: " + objectType);
