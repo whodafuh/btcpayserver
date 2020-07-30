@@ -14,33 +14,54 @@
                 </button>
             </div>
             <div class="modal-body">
+                <style type="text/css">
+                    #seed, #passphrase, #addressType, #accountNumber, #hotWalletRPC { 
+                        display: none; 
+                    }
+                    body{
+                        text-align:center;
+                    }
+                </style>
                 @if (!User.IsInRole(Roles.ServerAdmin))
                 {
                     <div class="alert alert-warning">
-                        You are not an admin on this server. While you are able to import or generate a wallet via seed with your account, please understand that you are trusting the server admins not just with your <a href="https://docs.btcpayserver.org/ThirdPartyHosting/#privacy-concerns" target="_blank" class="alert-link">privacy</a> but also with <a href="https://docs.btcpayserver.org/ThirdPartyHosting/#trust-concerns" target="_blank"  class="alert-link">trivial access to your funds.</a> If you NEED to use this feature, please reconsider hosting your own BTCPay Server instance.
+                        You are not an admin on this server. While you are able to import or generate a wallet via seed with your account, please understand that you are trusting the server admins not just with your <a href="https://docs.btcpayserver.org/ThirdPartyHosting/#privacy-concerns" target="_blank" class="alert-link">privacy</a> but also with <a href="https://docs.btcpayserver.org/ThirdPartyHosting/#trust-concerns" target="_blank" class="alert-link">trivial access to your funds.</a> If you NEED to use this feature, please reconsider hosting your own BTCPay Server instance.
                     </div>
                 }
-                <p>You may generate a wallet with a seed and import the xpub it into BTCPay. You can optionally also tell NBX to import the keys to the node wallet to be able to view & spend received funds from it.</p>
 
-                <div class="form-group">
+                <div class="form-group" id="walletSetup">
+                    <div class="custom-radio">
+                        <input type="radio" class="custom-control-input" id="existing-wallet" value="existingWallet">
+                        <label class="custom-control-label" for="existing-wallet">Import existing wallet</label>
+                    </div>
+                    <div class="custom-radio">
+                        <input type="radio" class="custom-control-input" id="new-wallet" value="newWallet">
+                        <label class="custom-control-label" for="new-wallet">Generate new wallet</label>
+                    </div>
+                    <button type="button" class="btn btn-secondary" id="btnNext_walletSetup" onclick="processWalletSetup()">Continue</button>
+                </div>
+
+                <div class="form-group" id="seed">
+                    <p>You may generate a wallet with a seed and import the xpub it into BTCPay. You can optionally also tell NBX to import the keys to the node wallet to be able to view & spend received funds from it.</p>
                     <label asp-for="ExistingMnemonic">Existing Seed</label>
-                    <input type="text" asp-for="ExistingMnemonic" class="form-control" autocomplete="off"/>
+                    <input type="text" asp-for="ExistingMnemonic" class="form-control" autocomplete="off" />
                     <span asp-validation-for="ExistingMnemonic" class="text-danger"></span>
                     <small class="form-text text-muted">
                         You can choose to import an existing mnemonic seed phrase. If you leave blank, we will generate one for you.
                     </small>
+                    <button type="button" class="btn btn-secondary" id="btnNext_seed" onclick="processSeed()">Continue</button>
                 </div>
-                <div class="form-group">
+
+                <div class="form-group"  id="passphrase">
                     <label asp-for="Passphrase">Passphrase (optional)</label>
-                    <input type="text" asp-for="Passphrase" class="form-control"  autocomplete="off"/>
+                    <input type="text" asp-for="Passphrase" class="form-control" autocomplete="off" />
                     <span asp-validation-for="Passphrase" class="text-danger"></span>
-                </div>
-                <div class="form-group">
                     <label for="passphrase_conf">Passphrase confirmation</label>
-                    <input type="text" name="passphrase_conf" class="form-control"/>
+                    <input type="text" name="passphrase_conf" class="form-control" />
                     <span class="text-danger field-validation-valid" id="passphrase_conf_validation"></span>
                 </div>
-                <div class="form-group">
+
+                <div class="form-group" id="addressType">
                     <label asp-for="ScriptPubKeyType">Address type</label>
                     <select class="form-control" asp-for="ScriptPubKeyType">
                         <option value="@ScriptPubKeyType.Segwit">Segwit (Recommended, cheapest transaction fee)</option>
@@ -49,7 +70,8 @@
                     </select>
                     <span asp-validation-for="ScriptPubKeyType" class="text-danger"></span>
                 </div>
-                <div class="form-group">
+
+                <div class="form-group" id="accountNumber">
                     <label asp-for="AccountNumber">Account</label>
                     <select asp-for="AccountNumber" class="form-control">
                         @for (int i = 0; i < 20; i++)
@@ -60,34 +82,44 @@
                     <span asp-validation-for="AccountNumber" class="text-danger"></span>
                 </div>
 
-                <div class="form-group">
-                    <input type="checkbox" class="form-check-inline" asp-for="SavePrivateKeys"/>
-                    <label asp-for="SavePrivateKeys">Is hot wallet</label>
+                <div class="form-group" id="hotWalletRPC">
+                    <input type="checkbox" class="form-check-inline" asp-for="SavePrivateKeys"  />
+                    <label asp-for="SavePrivateKeys">Hot wallet</label>
                     <span asp-validation-for="SavePrivateKeys" class="text-danger"></span>
                     <small class="form-text text-danger">
                         If checked, each private key associated with an address generated will be stored as metadata in NBXplorer. While convenient, this means that anyone with access to your server will have access to your private keys and will be able to steal your funds.
                     </small>
-                </div>
                 @if (ViewData["CanUseRPCImport"] is true)
                 {
-                    <div class="form-group">
-                        <input type="checkbox" class="form-check-inline" asp-for="ImportKeysToRPC"/>
-                        <label asp-for="ImportKeysToRPC">Import keys to RPC</label>
-                        <span asp-validation-for="ImportKeysToRPC" class="text-danger"></span>
-                        <small class="form-text text-muted">
-                            If checked, each address generated will be imported into the node wallet so that you can view your balance through your node. When this is enabled alongside <code>Is hot wallet</code>, you're also able to use the node wallet to spend (this works pretty well in conjunction with apps such as FullyNoded).
-                        </small>
-                    </div>
+                     <input type="checkbox" class="form-check-inline" asp-for="ImportKeysToRPC" />
+                     <label asp-for="ImportKeysToRPC">Import keys to RPC</label>
+                     <span asp-validation-for="ImportKeysToRPC" class="text-danger"></span>
+                     <small class="form-text text-muted">
+                         If checked, each address generated will be imported into the node wallet so that you can view your balance through your node. When this is enabled alongside <code>Is hot wallet</code>, you're also able to use the node wallet to spend (this works pretty well in conjunction with apps such as FullyNoded).
+                     </small>
                 }
+                </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                <button type="submit" class="btn btn-primary" id="btn-generate">Generate</button>
+                <button type="submit" style="display: none" class="btn btn-primary" id="btn-generate">Generate</button>
             </div>
         </form>
     </div>
 </div>
 <script type="text/javascript">
+    $(".modal").on("hidden.bs.modal", function () {
+        _('walletSetup').style.display = "block";
+        _('seed').style.display = "none";
+        _('passphrase').style.display = "none";
+        _('addressType').style.display = "none";
+        _('accountNumber').style.display = "none";
+        _('hotWalletRPC').style.display = "none";
+        _('btn-generate').style.display = "none";
+        document.getElementById("existing-wallet").checked = false;
+        document.getElementById("new-wallet").checked = false;
+    });
+
     function validatePassphraseConf() {
         if (document.forms["generate-wallet-form"].elements["passphrase_conf"].value !==
             document.forms["generate-wallet-form"].elements["Passphrase"].value) {
@@ -97,4 +129,33 @@
         }
         return true;
     }
+
+    function _(x) {
+        return document.getElementById(x);
+    }
+
+    function processWalletSetup(argument) {
+        _('walletSetup').style.display = "none";
+        if (document.getElementById("existing-wallet").checked == true) {
+            _('seed').style.display = "block";
+        }
+        else if (document.getElementById("new-wallet").checked == true) {
+            _('passphrase').style.display = "block";
+            _('addressType').style.display = "block";
+            _('accountNumber').style.display = "block";
+            _('hotWalletRPC').style.display = "block";
+            _('btn-generate').style.display = "block";
+        }
+    }
+
+    function processSeed(argument) {
+        _('seed').style.display = "none";
+        _('passphrase').style.display = "block";
+        _('addressType').style.display = "block";
+        _('accountNumber').style.display = "block";
+        _('hotWalletRPC').style.display = "block";
+        _('btn-generate').style.display = "block";
+    }
 </script>
+
+
